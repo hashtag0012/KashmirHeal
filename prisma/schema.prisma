@@ -1,0 +1,161 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Doctor {
+  id             String        @id @default(cuid())
+  name           String
+  specialization String
+  district       String
+  rating         Float         @default(4.5)
+  reviews        Int           @default(0)
+  image          String
+  isAvailable    Boolean       @default(true)
+  fees           Int
+  experience     String
+  description    String
+  status         String        @default("Pending") // Pending, Active, Rejected
+  commTaken      Float         @default(0)
+  commDue        Float         @default(0)
+  
+  // New Fields
+  licenseNumber  String?
+  verificationUrl String?
+  phone          String?
+  mapsUrl        String?
+  
+  userId         String?       @unique // Link to User account
+  user           User?         @relation(fields: [userId], references: [id])
+  appointments   Appointment[]
+  reviewsList    Review[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([specialization])
+  @@index([district])
+  @@index([userId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      String   @default("info") // info, success, warning, error
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Patient {
+  id           String        @id @default(cuid())
+  name         String
+  email        String?       @unique
+  image        String?
+  appointments Appointment[]
+  reviews      Review[]
+  createdAt    DateTime      @default(now())
+}
+
+model Appointment {
+  id             String   @id @default(cuid())
+  patientName    String
+  patientId      String
+  patient        Patient  @relation(fields: [patientId], references: [id])
+  doctorId       String
+  doctor         Doctor   @relation(fields: [doctorId], references: [id])
+  time           String
+  date           String
+  status         String   @default("pending") // pending, confirmed, completed, cancelled
+  
+  // Financials
+  paymentStatus  String   @default("Unpaid") // Unpaid, Paid
+  amount         Float    @default(0)
+  commission     Float    @default(0) // 10% of amount
+
+  address        String?
+  contact        String?
+  clinicLat      Float?
+  clinicLng      Float?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([doctorId])
+  @@index([patientId])
+  @@index([status])
+  @@index([date])
+}
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  role          String    @default("PATIENT") // ADMIN, DOCTOR, PATIENT
+  
+  // Onboarding
+  isOnboarded   Boolean   @default(false)
+  phone         String?
+
+  doctorProfile Doctor?
+  notifications Notification[]
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int
+  comment   String
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id])
+  doctorId  String
+  doctor    Doctor   @relation(fields: [doctorId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([doctorId])
+  @@index([patientId])
+}
