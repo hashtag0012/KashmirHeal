@@ -8,27 +8,30 @@ import { cn } from "@/lib/utils";
 const steps = [
     {
         id: "01",
-        title: "Search Locally",
-        desc: "Filter by district (e.g., Anantnag, Baramulla) or specialization to find the nearest expert.",
+        title: "Search & Discover",
+        desc: "Browse verified doctors by district, specialty, or availability. Filter by fees, experience, and ratings to find your perfect match.",
         icon: Search,
-        color: "bg-blue-500",
-        image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=1000&auto=format&fit=crop"
+        color: "from-blue-500 to-cyan-500",
+        image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=1000&auto=format&fit=crop",
+        features: ["Real-time availability", "Verified credentials", "Advanced filters"]
     },
     {
         id: "02",
-        title: "Check Availability",
-        desc: "See real-time slot availability. No more waiting in long queues at the clinic.",
+        title: "Book Instantly",
+        desc: "Select your preferred time slot and book in seconds. No more waiting in queues - get instant confirmation with WhatsApp updates.",
         icon: Calendar,
-        color: "bg-teal-500",
-        image: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?q=80&w=1000&auto=format&fit=crop"
+        color: "from-teal-500 to-emerald-500",
+        image: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?q=80&w=1000&auto=format&fit=crop",
+        features: ["Instant booking", "WhatsApp confirmation", "Secure payment"]
     },
     {
         id: "03",
-        title: "Instant Booking",
-        desc: "Book your slot in seconds. Pay online or at the clinic. Receive instant WhatsApp confirmation.",
+        title: "Consult & Care",
+        desc: "Attend your appointment at the clinic or via teleconsultation. Rate your experience and help others find quality healthcare.",
         icon: CheckCircle2,
-        color: "bg-purple-500",
-        image: "https://images.unsplash.com/photo-1550831107-1553da8c8464?q=80&w=1000&auto=format&fit=crop"
+        color: "from-purple-500 to-pink-500",
+        image: "https://images.unsplash.com/photo-1550831107-1553da8c8464?q=80&w=1000&auto=format&fit=crop",
+        features: ["In-person & online", "Post-consultation care", "Review system"]
     },
 ];
 
@@ -46,21 +49,43 @@ export function HowItWorks() {
     });
 
     return (
-        <section id="how-it-works" ref={ref} className="py-32 bg-slate-50 relative overflow-hidden">
+        <section id="how-it-works" ref={ref} className="py-32 bg-gradient-to-br from-slate-50 via-blue-50/30 to-teal-50/20 relative overflow-hidden">
             <div className="container mx-auto px-4 relative">
                 <div className="text-center mb-24">
-                    <span className="text-teal-600 font-bold tracking-wider uppercase text-sm bg-teal-50 px-4 py-2 rounded-full border border-teal-100">
-                        Simple Process
-                    </span>
-                    <h2 className="text-4xl md:text-5xl font-bold mt-6 text-slate-900">Healthcare Made Simple</h2>
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        className="inline-block px-6 py-3 rounded-full bg-gradient-to-r from-teal-500/20 to-blue-500/20 backdrop-blur-md border border-teal-200/50 text-teal-700 text-xs font-bold uppercase tracking-widest shadow-lg"
+                    >
+                        <span className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-teal-500 rounded-full animate-pulse" />
+                            Simple 3-Step Process
+                        </span>
+                    </motion.div>
+                    <motion.h2 
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="text-5xl md:text-6xl font-bold mt-6 bg-gradient-to-r from-slate-900 via-blue-800 to-teal-600 bg-clip-text text-transparent"
+                    >
+                        Healthcare Made Simple
+                    </motion.h2>
+                    <motion.p
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="text-lg text-slate-600 mt-4 max-w-2xl mx-auto"
+                    >
+                        From finding the right doctor to booking your appointment - everything you need in just a few clicks
+                    </motion.p>
                 </div>
 
                 <div className="relative max-w-5xl mx-auto">
                     {/* Central Beam Line */}
-                    <div className="absolute left-[20px] md:left-1/2 top-0 bottom-0 w-1 bg-slate-200 -translate-x-1/2 rounded-full" />
+                    <div className="absolute left-[20px] md:left-1/2 top-0 bottom-0 w-2 bg-slate-200/50 -translate-x-1/2 rounded-full" />
                     <motion.div
                         style={{ scaleY, transformOrigin: "top" }}
-                        className="absolute left-[20px] md:left-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-teal-400 via-blue-500 to-purple-500 -translate-x-1/2 rounded-full shadow-[0_0_20px_2px_rgba(45,212,191,0.5)]"
+                        className="absolute left-[20px] md:left-1/2 top-0 bottom-0 w-2 bg-gradient-to-b from-teal-400 via-blue-500 to-purple-500 -translate-x-1/2 rounded-full shadow-[0_0_30px_4px_rgba(45,212,191,0.4)]"
                     />
 
                     <div className="space-y-32">
@@ -70,11 +95,12 @@ export function HowItWorks() {
                                 idx % 2 === 0 ? "md:flex-row-reverse" : ""
                             )}>
                                 {/* Timeline Node */}
-                                <div className="absolute left-[20px] md:left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-white border-4 border-slate-300 z-10 shadow-sm">
+                                <div className="absolute left-[20px] md:left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-white border-4 border-slate-200/50 z-10 shadow-xl">
                                     <motion.div
                                         initial={{ scale: 0 }}
                                         whileInView={{ scale: 1 }}
-                                        className={cn("w-full h-full rounded-full", step.color)}
+                                        transition={{ delay: 0.3 }}
+                                        className={cn("w-full h-full rounded-full bg-gradient-to-br", step.color)}
                                     />
                                 </div>
 
@@ -83,21 +109,34 @@ export function HowItWorks() {
                                     "flex-1 text-left",
                                     idx % 2 === 0 ? "md:text-left" : "md:text-right"
                                 )}>
-                                    <div className={cn(
-                                        "flex flex-col gap-4",
-                                        idx % 2 === 0 ? "items-start" : "md:items-end"
-                                    )}>
+                                    <motion.div 
+                                        initial={{ opacity: 0, y: 30 }}
+                                        whileInView={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.2 }}
+                                        className={cn(
+                                            "flex flex-col gap-6",
+                                            idx % 2 === 0 ? "items-start" : "md:items-end"
+                                        )}>
                                         <div className={cn(
-                                            "w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-lg",
+                                            "w-16 h-16 rounded-2xl flex items-center justify-center text-white shadow-2xl bg-gradient-to-br",
                                             step.color
                                         )}>
-                                            <step.icon className="w-6 h-6" />
+                                            <step.icon className="w-8 h-8" />
                                         </div>
-                                        <h3 className="text-3xl font-bold text-slate-900">{step.title}</h3>
-                                        <p className="text-lg text-slate-600 leading-relaxed max-w-sm">
-                                            {step.desc}
-                                        </p>
-                                    </div>
+                                        <div className="space-y-4">
+                                            <h3 className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-blue-600 bg-clip-text text-transparent">{step.title}</h3>
+                                            <p className="text-lg text-slate-600 leading-relaxed max-w-md">
+                                                {step.desc}
+                                            </p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {step.features.map((feature, i) => (
+                                                    <span key={i} className="px-3 py-1 bg-gradient-to-r from-teal-50 to-blue-50 text-teal-700 text-xs font-semibold rounded-full border border-teal-200/50">
+                                                        {feature}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </motion.div>
                                 </div>
 
                                 {/* Image Block */}

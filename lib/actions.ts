@@ -98,17 +98,28 @@ export async function approveDoctor(doctorId: string) {
 }
 
 export async function terminateDoctor(doctorId: string) {
-    // 1. Delete doctor profile
-    await prisma.doctor.delete({
-        where: { id: doctorId }
-    });
+    try {
+        // 1. First, delete all appointments for this doctor
+        await prisma.appointment.deleteMany({
+            where: { doctorId }
+        });
 
-    // 2. Optionally demote User to PATIENT? 
-    // For now, we just remove the doctor profile linkage.
-    // The requirement says "terminate a doctor", deleting profile is safest "ban".
+        // 2. Delete all reviews for this doctor
+        await prisma.review.deleteMany({
+            where: { doctorId }
+        });
 
-    revalidatePath("/admin");
-    return { success: true };
+        // 3. Delete the doctor profile
+        await prisma.doctor.delete({
+            where: { id: doctorId }
+        });
+
+        revalidatePath("/admin");
+        return { success: true };
+    } catch (error) {
+        console.error("Error terminating doctor:", error);
+        return { success: false, error: (error as any).message };
+    }
 }
 
 export async function getAppointments(doctorId?: string) {

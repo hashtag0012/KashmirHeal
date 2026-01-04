@@ -108,32 +108,16 @@ export function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="flex flex-col sm:flex-row gap-4 pt-4 justify-center lg:justify-start"
+              className="flex flex-col sm:flex-row gap-4 pt-8 justify-center lg:justify-start"
             >
-              <Button size="lg" className="h-14 px-8 rounded-full text-lg bg-teal-600 hover:bg-teal-700 shadow-xl shadow-teal-200/50 font-bold">
-                Find a Doctor
+              <Button size="lg" className="h-16 px-10 rounded-2xl text-lg bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-700 hover:to-blue-700 shadow-2xl shadow-teal-200/50 font-bold transition-all duration-300 hover:scale-105">
+                <Search className="w-5 h-5 mr-2" /> Find a Doctor
               </Button>
-              <Button size="lg" variant="outline" className="h-14 px-8 rounded-full text-lg border-slate-200 text-slate-700 hover:bg-slate-50 gap-2 font-bold">
-                <Play className="w-4 h-4 fill-slate-700" /> Watch Demo
+              <Button size="lg" variant="outline" className="h-16 px-10 rounded-2xl text-lg border-2 border-slate-200 text-slate-700 hover:bg-slate-50 gap-2 font-bold transition-all duration-300 hover:scale-105">
+                <Play className="w-5 h-5 fill-slate-700" /> Watch Demo
               </Button>
             </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-              className="mt-8 flex items-center justify-center lg:justify-start gap-8"
-            >
-              <div>
-                <div className="text-2xl font-black text-slate-900 tracking-tighter">25k+</div>
-                <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Happy Families</div>
-              </div>
-              <div className="w-px h-8 bg-slate-200 hidden sm:block" />
-              <div>
-                <div className="text-2xl font-black text-slate-900 tracking-tighter">4.9/5</div>
-                <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Patient Ratings</div>
-              </div>
-            </motion.div>
           </div>
 
           {/* Right Content / 3D Model Dedicated Space on Mobile */}

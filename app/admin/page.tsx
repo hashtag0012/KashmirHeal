@@ -93,44 +93,69 @@ export default function AdminDashboard() {
     );
 
     return (
-        <div className="min-h-screen bg-slate-50 p-8 space-y-8">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-teal-50/20 p-8 space-y-8">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-                    <p className="text-slate-500">Overview of platform performance and doctor management</p>
+                    <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 via-blue-800 to-teal-600 bg-clip-text text-transparent">Admin Dashboard</h1>
+                    <p className="text-slate-600 mt-2">Overview of platform performance and doctor management</p>
                 </div>
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Card>
-                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Total Revenue</CardTitle></CardHeader>
-                    <CardContent><div className="text-2xl font-bold">₹{stats?.totalRevenue.toLocaleString()}</div></CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 border-emerald-200/50 hover:shadow-xl hover:shadow-emerald-200/30 transition-all duration-300">
+                    <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold text-emerald-800 flex items-center gap-2">
+                        <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
+                            <span className="text-white text-sm font-bold">₹</span>
+                        </div>
+                        Total Revenue
+                    </CardTitle></CardHeader>
+                    <CardContent><div className="text-3xl font-bold text-emerald-900">₹{stats?.totalRevenue.toLocaleString()}</div></CardContent>
                 </Card>
-                <Card>
-                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-green-600">Total Commissions (10%)</CardTitle></CardHeader>
-                    <CardContent><div className="text-2xl font-bold text-green-600">₹{stats?.totalCommission.toLocaleString()}</div></CardContent>
+                <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-200/50 hover:shadow-xl hover:shadow-blue-200/30 transition-all duration-300">
+                    <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold text-blue-800 flex items-center gap-2">
+                        <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                            <span className="text-white text-sm font-bold">%</span>
+                        </div>
+                        Total Commissions (10%)
+                    </CardTitle></CardHeader>
+                    <CardContent><div className="text-3xl font-bold text-blue-900">₹{stats?.totalCommission.toLocaleString()}</div></CardContent>
                 </Card>
-                <Card>
-                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Active Doctors</CardTitle></CardHeader>
-                    <CardContent><div className="text-2xl font-bold">{stats?.totalDoctors}</div></CardContent>
+                <Card className="bg-gradient-to-br from-purple-50 to-purple-100/50 border-purple-200/50 hover:shadow-xl hover:shadow-purple-200/30 transition-all duration-300">
+                    <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold text-purple-800 flex items-center gap-2">
+                        <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
+                            <span className="text-white text-sm font-bold">👨</span>
+                        </div>
+                        Active Doctors
+                    </CardTitle></CardHeader>
+                    <CardContent><div className="text-3xl font-bold text-purple-900">{stats?.totalDoctors}</div></CardContent>
                 </Card>
-                <Card>
-                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Total Appointments</CardTitle></CardHeader>
-                    <CardContent><div className="text-2xl font-bold">{stats?.totalAppointments}</div></CardContent>
+                <Card className="bg-gradient-to-br from-amber-50 to-amber-100/50 border-amber-200/50 hover:shadow-xl hover:shadow-amber-200/30 transition-all duration-300">
+                    <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold text-amber-800 flex items-center gap-2">
+                        <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center">
+                            <span className="text-white text-sm font-bold">📅</span>
+                        </div>
+                        Total Appointments
+                    </CardTitle></CardHeader>
+                    <CardContent><div className="text-3xl font-bold text-amber-900">{stats?.totalAppointments}</div></CardContent>
                 </Card>
             </div>
 
             {/* Doctor Management */}
-            <Card>
-                <CardHeader>
+            <Card className="bg-white/80 backdrop-blur-sm border border-slate-200/50 shadow-xl hover:shadow-2xl transition-all duration-300">
+                <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50/50 border-b border-slate-200/50">
                     <div className="flex items-center justify-between">
-                        <CardTitle>Doctor Management</CardTitle>
-                        <div className="relative w-72">
-                            <Search className="absolute left-2 top-2.5 h-4 w-4 text-slate-500" />
+                        <CardTitle className="text-xl font-bold text-slate-800 flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-teal-500 rounded-lg flex items-center justify-center">
+                                <span className="text-white text-lg">👨‍⚕️</span>
+                            </div>
+                            Doctor Management
+                        </CardTitle>
+                        <div className="relative w-80">
+                            <Search className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
                             <Input
                                 placeholder="Search by name or license..."
-                                className="pl-8"
+                                className="pl-10 h-12 bg-white/80 border-slate-200/50 rounded-xl focus:border-blue-400 focus:ring-2 focus:ring-blue-200/50"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                             />
