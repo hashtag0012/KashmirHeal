@@ -34,9 +34,13 @@ export default function NotificationCenter() {
                 if (res.ok) {
                     const data = await res.json();
                     setNotifications(data);
+                } else if (res.status === 401) {
+                    // User not authenticated, don't show error
+                    setNotifications([]);
                 }
             } catch (error) {
                 console.error("Failed to fetch notifications", error);
+                setNotifications([]);
             } finally {
                 setIsLoading(false);
             }

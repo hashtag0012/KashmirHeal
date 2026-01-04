@@ -36,12 +36,31 @@ function HeartGLB({ ...props }) {
 }
 
 function StethoscopeGLB({ ...props }) {
-    const { scene } = useGLTF("/doctors_stethoscope.glb");
-    return (
-        <Center>
-            <primitive object={scene.clone()} rotation={[0, Math.PI, 0]} {...props} />
-        </Center>
-    );
+    const [error, setError] = useState(false);
+    
+    if (error) {
+        return (
+            <Center>
+                <mesh {...props}>
+                    <boxGeometry args={[1, 1, 1]} />
+                    <meshStandardMaterial color="#2dd4bf" />
+                </mesh>
+            </Center>
+        );
+    }
+    
+    try {
+        const { scene } = useGLTF("/doctors_stethoscope.glb");
+        return (
+            <Center>
+                <primitive object={scene.clone()} rotation={[0, Math.PI, 0]} {...props} />
+            </Center>
+        );
+    } catch (err) {
+        console.error("Failed to load stethoscope model:", err);
+        setError(true);
+        return null;
+    }
 }
 
 function MaskGLB({ ...props }) {
