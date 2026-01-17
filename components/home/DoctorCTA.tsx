@@ -26,7 +26,7 @@ export function DoctorCTA() {
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        className="bg-slate-50 border border-slate-100 rounded-[60px] p-12 md:p-20 relative overflow-hidden shadow-xl"
+                        className="bg-slate-50 border border-slate-100 rounded-[30px] md:rounded-[60px] p-8 md:p-20 relative overflow-hidden shadow-xl"
                     >
                         {/* Decorative floating elements */}
                         <motion.div

@@ -15,12 +15,39 @@ function ModelLoading() {
     return (
         <Html center>
             <div className="flex flex-col items-center gap-4">
-                <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-                <span className="text-primary font-black tracking-widest uppercase text-xs animate-pulse">
-                    Initiating Systems...
+                <div className="relative w-16 h-16">
+                    <div className="absolute inset-0 border-2 border-primary/20 rounded-full" />
+                    <div className="absolute inset-0 border-2 border-t-primary rounded-full animate-spin" />
+                    <div className="absolute inset-2 border border-primary/10 rounded-full animate-pulse" />
+                </div>
+                <span className="text-primary font-black tracking-widest uppercase text-[10px] animate-pulse">
+                    Streaming Intelligence...
                 </span>
             </div>
         </Html>
+    );
+}
+
+// Optimized Procedural Mesh for instant visibility
+function CyberPod({ color }: { color: string }) {
+    return (
+        <group position={[0, -22, 0]}>
+            <mesh>
+                <cylinderGeometry args={[22, 24, 2, 32]} />
+                <meshStandardMaterial color="#111" metalness={0.8} roughness={0.2} />
+            </mesh>
+            <mesh position={[0, 1, 0]}>
+                <cylinderGeometry args={[18, 18, 0.5, 32]} />
+                <meshStandardMaterial
+                    color={color}
+                    emissive={color}
+                    emissiveIntensity={2}
+                    transparent
+                    opacity={0.4}
+                />
+            </mesh>
+            <pointLight position={[0, 2, 0]} intensity={2} color={color} />
+        </group>
     );
 }
 
@@ -30,14 +57,14 @@ function HeartGLB({ ...props }) {
     const { scene } = useGLTF("/Meshy_AI_Anatomical_Heart_Mode_1225111650_texture.glb");
     return (
         <Center>
-            <primitive object={scene.clone()} rotation={[0, 0, 0]} {...props} />
+            <primitive object={scene} rotation={[0, 0, 0]} {...props} />
         </Center>
     );
 }
 
 function StethoscopeGLB({ ...props }) {
     const [error, setError] = useState(false);
-    
+
     if (error) {
         return (
             <Center>
@@ -48,12 +75,12 @@ function StethoscopeGLB({ ...props }) {
             </Center>
         );
     }
-    
+
     try {
         const { scene } = useGLTF("/doctors_stethoscope.glb");
         return (
             <Center>
-                <primitive object={scene.clone()} rotation={[0, Math.PI, 0]} {...props} />
+                <primitive object={scene} rotation={[0, Math.PI, 0]} {...props} />
             </Center>
         );
     } catch (err) {
@@ -67,7 +94,7 @@ function MaskGLB({ ...props }) {
     const { scene } = useGLTF("/Meshy_AI__Hyperrealistic_3D_re_1225112828_texture.glb");
     return (
         <Center>
-            <primitive object={scene.clone()} rotation={[0, Math.PI, 0]} {...props} />
+            <primitive object={scene} rotation={[0, Math.PI, 0]} {...props} />
         </Center>
     );
 }
@@ -75,7 +102,6 @@ function MaskGLB({ ...props }) {
 function PodGLB({ color }: { color: string }) {
     const { scene } = useGLTF("/pod.glb");
     const podRef = useRef<THREE.Group>(null);
-    const { viewport } = useThree();
     const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
@@ -94,7 +120,7 @@ function PodGLB({ color }: { color: string }) {
     return (
         <group ref={podRef} position={[0, isMobile ? -22.5 : -22, 0]}>
             <Center top>
-                <primitive object={scene.clone()} scale={isMobile ? 25.0 : 29.0} />
+                <primitive object={scene} scale={isMobile ? 25.0 : 29.0} />
             </Center>
 
             {/* Keeping a subtle light beam for the WOW factor */}
@@ -300,35 +326,39 @@ export function MedicalModels() {
     const currentItem = models[index];
 
     return (
-        <Suspense fallback={<ModelLoading />}>
+        <>
             <Environment preset="studio" environmentIntensity={isMobile ? 0.5 : 1.2} />
             <ambientLight intensity={isMobile ? 1.0 : 1.2} />
             <pointLight position={[5, 10, 5]} intensity={isMobile ? 1.2 : 1.5} color="#fff" />
             <spotLight position={[0, 4, 0]} angle={0.4} penumbra={1} intensity={isMobile ? 1.0 : 1.5} color={currentItem.color} />
 
-            <Float speed={1.2} rotationIntensity={0.2} floatIntensity={0.2} floatingRange={[-0.05, 0.05]}>
-                <PodGLB color={currentItem.color} />
-            </Float>
+            <Suspense fallback={<CyberPod color={currentItem.color} />}>
+                <Float speed={1.2} rotationIntensity={0.2} floatIntensity={0.2} floatingRange={[-0.05, 0.05]}>
+                    <PodGLB color={currentItem.color} />
+                </Float>
+            </Suspense>
 
             <InteractiveTilt position={[0, isMobile ? 10.0 : 20.0, 0]}>
                 <Float speed={isMobile ? 1.5 : 2.5} rotationIntensity={0.4} floatIntensity={0.5} floatingRange={[-0.15, 0.15]}>
-                    {models.map((item, i) => {
-                        const Model = item.Component;
-                        const isActive = i === index;
-                        return (
-                            <AnimatedModel key={item.id} active={isActive}>
-                                <Model scale={item.scale * modelScaleMod} />
-                                <DataParticles color={item.color} />
-                                <GlassCard
-                                    title={item.id}
-                                    desc=""
-                                    stats={item.stats}
-                                    color={item.color}
-                                    active={isActive}
-                                />
-                            </AnimatedModel>
-                        );
-                    })}
+                    <Suspense fallback={<ModelLoading />}>
+                        {models.map((item, i) => {
+                            const Model = item.Component;
+                            const isActive = i === index;
+                            return (
+                                <AnimatedModel key={item.id} active={isActive}>
+                                    <Model scale={item.scale * modelScaleMod} />
+                                    <DataParticles color={item.color} />
+                                    <GlassCard
+                                        title={item.id}
+                                        desc=""
+                                        stats={item.stats}
+                                        color={item.color}
+                                        active={isActive}
+                                    />
+                                </AnimatedModel>
+                            );
+                        })}
+                    </Suspense>
                 </Float>
             </InteractiveTilt>
 
@@ -346,6 +376,6 @@ export function MedicalModels() {
                     <meshStandardMaterial color="#fee2e2" transparent opacity={0.6} />
                 </mesh>
             </Float>
-        </Suspense>
+        </>
     );
 }

@@ -33,6 +33,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="preload" href="/doctors_stethoscope.glb" as="fetch" crossOrigin="anonymous" />
+        <link rel="preload" href="/Meshy_AI__Hyperrealistic_3D_re_1225112828_texture.glb" as="fetch" crossOrigin="anonymous" />
+        <link rel="preload" href="/Meshy_AI_Anatomical_Heart_Mode_1225111650_texture.glb" as="fetch" crossOrigin="anonymous" />
+        <link rel="preload" href="/pod.glb" as="fetch" crossOrigin="anonymous" />
+        <link rel="preload" href="https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/studio_small_08_1k.hdr" as="fetch" crossOrigin="anonymous" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground`}
       >

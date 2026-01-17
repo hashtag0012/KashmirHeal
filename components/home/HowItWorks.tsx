@@ -62,11 +62,11 @@ export function HowItWorks() {
                             Simple 3-Step Process
                         </span>
                     </motion.div>
-                    <motion.h2 
+                    <motion.h2
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
-                        className="text-5xl md:text-6xl font-bold mt-6 bg-gradient-to-r from-slate-900 via-blue-800 to-teal-600 bg-clip-text text-transparent"
+                        className="text-4xl md:text-6xl font-bold mt-6 bg-gradient-to-r from-slate-900 via-blue-800 to-teal-600 bg-clip-text text-transparent px-4"
                     >
                         Healthcare Made Simple
                     </motion.h2>
@@ -84,7 +84,7 @@ export function HowItWorks() {
                     {/* Central Beam Line */}
                     <div className="absolute left-[20px] md:left-1/2 top-0 bottom-0 w-2 bg-slate-200/50 -translate-x-1/2 rounded-full" />
                     <motion.div
-                        style={{ scaleY, transformOrigin: "top" }}
+                        style={{ scaleY, originY: 0 }}
                         className="absolute left-[20px] md:left-1/2 top-0 bottom-0 w-2 bg-gradient-to-b from-teal-400 via-blue-500 to-purple-500 -translate-x-1/2 rounded-full shadow-[0_0_30px_4px_rgba(45,212,191,0.4)]"
                     />
 
@@ -109,7 +109,7 @@ export function HowItWorks() {
                                     "flex-1 text-left",
                                     idx % 2 === 0 ? "md:text-left" : "md:text-right"
                                 )}>
-                                    <motion.div 
+                                    <motion.div
                                         initial={{ opacity: 0, y: 30 }}
                                         whileInView={{ opacity: 1, y: 0 }}
                                         transition={{ delay: 0.2 }}

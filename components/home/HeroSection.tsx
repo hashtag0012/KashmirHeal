@@ -136,7 +136,7 @@ export function HeroSection() {
                 dpr={[1, 2]}
               >
                 <Suspense fallback={null}>
-                  <group position={[0, -5, 0]}>
+                  <group position={[0, isMobile ? -10 : -5, 0]}>
                     <MedicalModels />
                   </group>
                 </Suspense>

@@ -15,7 +15,7 @@ export function TrustSection() {
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        className="text-4xl md:text-5xl lg:text-7xl font-extrabold tracking-tight text-slate-900 mb-8"
+                        className="text-3xl md:text-5xl lg:text-7xl font-extrabold tracking-tight text-slate-900 mb-8 px-2"
                     >
                         Why We Are <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-emerald-600">J&K's #1 Choice.</span>
                     </motion.h2>
@@ -88,10 +88,10 @@ export function TrustSection() {
                     />
 
                     <BentoGridItem
-                        title="24/7 Hyper-Local Support"
-                        description="Our Srinagar HQ handles bookings, emergencies, and translations instantly."
+                        title="24/7 Support"
+                        description="Srinagar HQ handles bookings instantly."
                         header={
-                            <div className="flex flex-1 w-full h-full min-h-[12rem] bg-indigo-50/50 rounded-2xl overflow-hidden relative group">
+                            <div className="flex flex-1 w-full h-full min-h-[14rem] bg-indigo-50/50 rounded-2xl overflow-hidden relative group">
                                 <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#6366f1_1px,transparent_1px)] [size:10px_10px]" />
                                 <div className="p-8 w-full h-full flex flex-col justify-between">
                                     <div className="flex justify-between items-start">
