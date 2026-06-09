@@ -11,16 +11,23 @@ import { Search, MapPin, ArrowRight, ShieldCheck, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { StatsTicker } from "./StatsTicker";
-import { MedicalModels } from "./MedicalModels";
+import dynamic from "next/dynamic";
+const MedicalModels = dynamic(() => import("./MedicalModels"), { ssr: false, loading: () => <></> });
 
 function ParticleField(props: any) {
   const ref = useRef<any>(null);
-  const [sphere] = useState(() => random.inSphere(new Float32Array(6000), { radius: 1.5 }));
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768);
+  }, []);
+
+  const count = isMobile ? 500 : 6000;
+  const [sphere] = useState(() => random.inSphere(new Float32Array(count), { radius: 1.5 }));
 
   useFrame((state, delta) => {
     if (ref.current) {
-      ref.current.rotation.x -= delta / 10;
-      ref.current.rotation.y -= delta / 15;
+      ref.current.rotation.x -= delta / 15;
+      ref.current.rotation.y -= delta / 20;
     }
   });
 
@@ -52,24 +59,27 @@ export function HeroSection() {
   return (
     <div className="relative w-full min-h-[70vh] lg:min-h-[85vh] bg-white overflow-hidden flex flex-col pt-12">
       <div className="absolute inset-0 z-0">
-        <img
+        <Image
           src="https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?q=80&w=2000&auto=format&fit=crop"
           alt="Medical team"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover brightness-[0.95]"
+          width={2000}
+          height={1200}
         />
-        {/* Gradient overlays for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/60 to-white/30" />
-        <div className="absolute inset-0 bg-gradient-to-b from-white/20 via-transparent to-white/30" />
+        <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/70 to-white/10" />
+        <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-white/40" />
       </div>
 
-      {/* 3D Background Layer */}
-      <div className="absolute inset-0 z-0 opacity-15">
-        <Canvas camera={{ position: [0, 0, 1] }}>
-          <Suspense fallback={null}>
-            <ParticleField />
-          </Suspense>
-        </Canvas>
-      </div>
+      {/* 3D Background Layer - skip on mobile to avoid second WebGL context */}
+      {!isMobile && (
+        <div className="absolute inset-0 z-0 opacity-15">
+          <Canvas camera={{ position: [0, 0, 1] }}>
+            <Suspense fallback={null}>
+              <ParticleField />
+            </Suspense>
+          </Canvas>
+        </div>
+      )}
 
       {/* Grid Pattern */}
       <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 z-0 pointer-events-none" />
@@ -121,22 +131,27 @@ export function HeroSection() {
           </div>
 
           {/* Right Content / 3D Model Dedicated Space on Mobile */}
-          <div className="relative h-[400px] lg:h-[500px] flex items-center justify-center order-first lg:order-last">
+          <div className="relative h-[350px] md:h-[500px] flex items-center justify-center order-first lg:order-last">
             {/* Decorative glow behind 3D models */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] md:w-[600px] lg:w-[800px] h-[350px] md:h-[600px] lg:h-[800px] bg-gradient-to-r from-teal-400/10 via-blue-400/10 to-purple-400/10 rounded-full blur-[100px] animate-pulse" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] md:w-[600px] h-[350px] md:h-[600px] bg-gradient-to-r from-teal-400/5 via-blue-400/10 to-purple-400/5 rounded-full blur-[80px] animate-pulse" />
 
-            <div className="w-full h-full">
+            <div className="w-full h-full touch-none">
               <Canvas
-                camera={{ position: [isMobile ? 0 : 10, 2, isMobile ? 100 : 90], fov: 45 }}
+                camera={{ 
+                  position: [0, 0, isMobile ? 120 : 90], 
+                  fov: isMobile ? 50 : 45 
+                }}
                 gl={{
-                  antialias: true,
+                  antialias: !isMobile, // Disable antialiasing on mobile for HUGE performance gain
                   powerPreference: "high-performance",
                   alpha: true,
+                  stencil: false,
+                  depth: true
                 }}
-                dpr={[1, 2]}
+                dpr={isMobile ? [1, 1] : [1, 2]} // Force 1x resolution on mobile for speed
               >
                 <Suspense fallback={null}>
-                  <group position={[0, isMobile ? -10 : -5, 0]}>
+                  <group position={[0, isMobile ? -5 : -5, 0]}>
                     <MedicalModels />
                   </group>
                 </Suspense>

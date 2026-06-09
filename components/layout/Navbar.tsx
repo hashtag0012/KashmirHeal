@@ -23,6 +23,12 @@ export function Navbar() {
 
     const navLinks = [
         {
+            name: "Home",
+            href: "/",
+            icon: "🏠",
+            description: "Go to homepage"
+        },
+        {
             name: "Browse Doctors",
             href: "/search",
             icon: "🔍",
@@ -120,14 +126,16 @@ export function Navbar() {
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
-                        className="absolute top-20 left-0 right-0 bg-white border-b border-slate-200 shadow-2xl lg:hidden z-50 overflow-hidden"
+                        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                        style={{ transform: "translateZ(0)" }} // GPU Acceleration
+                        className="absolute top-20 left-4 right-4 bg-white/95 backdrop-blur-2xl border border-slate-200 shadow-2xl lg:hidden z-50 rounded-3xl overflow-hidden"
                     >
                         <div className="p-4 space-y-2">
                             {navLinks.map((item) => (
                                 <Link
                                     key={item.name}
                                     href={item.href}
-                                    className="flex items-center justify-between p-4 rounded-2xl hover:bg-slate-50 transition-colors"
+                                    className="flex items-center justify-between p-5 rounded-2xl hover:bg-slate-50 transition-colors active:scale-95"
                                 >
                                     <div className="flex items-center gap-4">
                                         <span className="text-2xl">{item.icon}</span>
@@ -168,8 +176,10 @@ export function Navbar() {
                                 </Link>
                             )}
 
-                            <div className="pt-4 sm:hidden">
-                                <LoginButton />
+                            <div className="pt-4 sm:hidden pb-2">
+                                <div className="w-full [&>button]:w-full">
+                                    <LoginButton />
+                                </div>
                             </div>
                         </div>
                     </motion.div>

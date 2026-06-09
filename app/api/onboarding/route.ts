@@ -12,7 +12,7 @@ export async function POST(req: Request) {
         }
 
         const body = await req.json();
-        const { role, phone, specialization, district, license, fees, experience, description, verificationUrl } = body;
+        const { role, phone, specialization, district, license, fees, experience, description, verificationUrl, imageUrl } = body;
 
         // 1. Update User
         const userData = {
@@ -28,21 +28,22 @@ export async function POST(req: Request) {
 
         // 2. If Doctor, Create Profile
         if (role === 'DOCTOR') {
-            const doctorData = {
-                userId: user.id,
-                name: user.name || "Doctor",
-                image: user.image || "",
-                // @ts-ignore
-                phone: phone,
-                specialization,
-                district,
-                licenseNumber: license,
-                fees,
-                experience,
-                description,
-                verificationUrl,
-                status: "Pending" // Must be approved by Admin
-            };
+                const doctorData = {
+                    userId: user.id,
+                    name: user.name || "Doctor",
+                    // imageUrl from frontend (profilePicUrl)
+                    image: imageUrl || user.image || "",
+                    // @ts-ignore
+                    phone: phone,
+                    specialization,
+                    district,
+                    licenseNumber: license,
+                    fees,
+                    experience,
+                    description,
+                    verificationUrl,
+                    status: "Pending" // Must be approved by Admin
+                };
 
             await prisma.doctor.upsert({
                 where: { userId: user.id },

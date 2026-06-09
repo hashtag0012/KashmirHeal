@@ -9,7 +9,7 @@ export function Footer() {
     return (
         <footer className="bg-white border-t border-slate-100 pt-16 pb-8">
             <div className="container mx-auto px-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-16">
                     {/* Brand Column */}
                     <div className="space-y-6">
                         <Link href="/" className="flex items-center">
@@ -35,6 +35,11 @@ export function Footer() {
                     <div>
                         <h4 className="font-bold text-slate-900 mb-6">Quick Links</h4>
                         <ul className="space-y-4">
+                            <li>
+                                <Link href="/" className="text-slate-500 hover:text-teal-600 transition-colors block">
+                                    Home
+                                </Link>
+                            </li>
                             {['Find a Doctor', 'Our Specialists', 'How it Works', 'Patient Stories', 'For Doctors'].map((item) => (
                                 <li key={item}>
                                     <Link href="#" className="text-slate-500 hover:text-teal-600 transition-colors block">
@@ -49,32 +54,15 @@ export function Footer() {
                     <div>
                         <h4 className="font-bold text-slate-900 mb-6">Contact Us</h4>
                         <ul className="space-y-4">
-                            <li className="flex items-start gap-3 text-slate-500">
-                                <MapPin className="w-5 h-5 text-teal-600 shrink-0 mt-0.5" />
-                                <span>
-                                    Regal Chowk, Residency Road,<br />
-                                    Srinagar, J&K 190001
-                                </span>
-                            </li>
                             <li className="flex items-center gap-3 text-slate-500">
                                 <Phone className="w-5 h-5 text-teal-600 shrink-0" />
-                                <span>+91 194 245 1234</span>
+                                <span>+91 8825031589</span>
                             </li>
                             <li className="flex items-center gap-3 text-slate-500">
                                 <Mail className="w-5 h-5 text-teal-600 shrink-0" />
-                                <span>support@kashmirheal.com</span>
+                                <span>officialz.one10f@gmail.com</span>
                             </li>
                         </ul>
-                    </div>
-
-                    {/* Newsletter */}
-                    <div>
-                        <h4 className="font-bold text-slate-900 mb-6">Stay Updated</h4>
-                        <p className="text-slate-500 mb-4">Subscribe to gets health tips and platform updates.</p>
-                        <div className="space-y-3">
-                            <Input placeholder="Enter your email" className="bg-slate-50 border-slate-200 focus-visible:ring-teal-500" />
-                            <Button className="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold">Subscribe</Button>
-                        </div>
                     </div>
                 </div>
 
@@ -83,7 +71,6 @@ export function Footer() {
                     <div className="flex gap-8">
                         <Link href="#" className="hover:text-slate-600">Privacy Policy</Link>
                         <Link href="#" className="hover:text-slate-600">Terms of Service</Link>
-                        <Link href="#" className="hover:text-slate-600">Cookie Policy</Link>
                     </div>
                 </div>
             </div>

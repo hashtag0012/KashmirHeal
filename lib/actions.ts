@@ -2,40 +2,61 @@
 
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { unstable_cache } from "next/cache";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
-export async function getDoctors(filters: {
-    specializations?: string[];
-    districts?: string[];
-    searchTerm?: string;
-    maxFee?: number;
-    locationTerm?: string;
-}) {
-    const { specializations, districts, searchTerm, maxFee, locationTerm } = filters;
-
-    return await prisma.doctor.findMany({
-        where: {
-            AND: [
-                specializations && specializations.length > 0 ? { specialization: { in: specializations } } : {},
-                districts && districts.length > 0 ? { district: { in: districts } } : {},
-                searchTerm ? {
-                    OR: [
-                        { name: { contains: searchTerm } },
-                        { specialization: { contains: searchTerm } },
-                    ]
-                } : {},
-                locationTerm ? { district: { contains: locationTerm } } : {},
-                maxFee ? { fees: { lte: maxFee } } : {},
-                { status: "Active" }
-            ]
-        },
-        orderBy: { rating: 'desc' },
-        take: 50,
-    });
+function isAdmin(session: any) {
+    if (!session || !session.user) return false;
+    if (session.user.role === "ADMIN") return true;
+    const email = session.user.email;
+    return email === "hashimadil001@gmail.com";
 }
+
+
+export const getDoctors = unstable_cache(
+    async (filters: {
+        specializations?: string[];
+        districts?: string[];
+        searchTerm?: string;
+        maxFee?: number;
+        locationTerm?: string;
+    }) => {
+        const { specializations, districts, searchTerm, maxFee, locationTerm } = filters;
+
+        return await prisma.doctor.findMany({
+            where: {
+                AND: [
+                    specializations && specializations.length > 0 ? { specialization: { in: specializations } } : {},
+                    districts && districts.length > 0 ? { district: { in: districts } } : {},
+                    searchTerm ? {
+                        OR: [
+                            { name: { contains: searchTerm } },
+                            { specialization: { contains: searchTerm } },
+                        ]
+                    } : {},
+                    locationTerm ? { district: { contains: locationTerm } } : {},
+                    maxFee ? { fees: { lte: maxFee } } : {},
+                    { status: "Active" }
+                ]
+            },
+            orderBy: { rating: 'desc' },
+            take: 50,
+        });
+    },
+    ["doctors-search-cache"],
+    { revalidate: 60, tags: ["doctors"] }
+);
 
 // --- ADMIN ACTIONS ---
 
 export async function getAdminStats() {
+    const session = await getServerSession(authOptions);
+    if (!isAdmin(session)) {
+        throw new Error("Unauthorized: Admin access required");
+    }
+
+    // Fetch all doctors and their appointments to calculate dynamic monthly stats
     const doctors = await prisma.doctor.findMany({
         include: {
             appointments: true
@@ -43,30 +64,49 @@ export async function getAdminStats() {
     });
 
     const totalDoctors = doctors.length;
-    const totalAppointments = doctors.reduce((acc, doc) => acc + doc.appointments.length, 0);
-
-    // Calculate Financials (Mocking logic for now as payment is new)
-    // In real app, we sum up Appointment.commission
+    let totalAppointments = 0;
     let totalRevenue = 0;
     let totalCommission = 0;
 
     const doctorStats = doctors.map(doc => {
-        const paidAppts = (doc.appointments as any[]).filter(a => a.paymentStatus === 'Paid').length;
-        const unpaidAppts = (doc.appointments as any[]).filter(a => a.paymentStatus === 'Unpaid').length;
-
-        // Mock revenue calculation based on fees * paid appointments
-        const revenue = paidAppts * (doc.fees || 0);
-        const commission = revenue * 0.10; // 10% commission
-
-        totalRevenue += revenue;
-        totalCommission += commission;
+        const paidAppts = doc.appointments.filter(a => a.paymentStatus === "Paid");
+        const unpaidAppts = doc.appointments.filter(a => a.paymentStatus === "Unpaid");
+        
+        const docRevenue = paidAppts.reduce((sum, a) => sum + a.amount, 0);
+        const docCommission = paidAppts.reduce((sum, a) => sum + a.commission, 0);
+        
+        totalAppointments += doc.appointments.length;
+        totalRevenue += docRevenue;
+        totalCommission += docCommission;
 
         return {
-            ...doc,
-            paidAppts,
-            unpaidAppts,
-            totalRevenue: revenue,
-            commission
+            id: doc.id,
+            name: doc.name,
+            specialization: doc.specialization,
+            status: doc.status,
+            licenseNumber: doc.licenseNumber,
+            verificationUrl: doc.verificationUrl,
+            fees: doc.fees,
+            phone: doc.phone,
+            district: doc.district,
+            mapsUrl: doc.mapsUrl,
+            paidAppts: paidAppts.length,
+            unpaidAppts: unpaidAppts.length,
+            totalRevenue: docRevenue,
+            commission: docCommission,
+            appointments: doc.appointments.map(a => ({
+                id: a.id,
+                patientName: a.patientName,
+                patientId: a.patientId,
+                time: a.time,
+                date: a.date,
+                status: a.status,
+                paymentStatus: a.paymentStatus,
+                amount: a.amount,
+                commission: a.commission,
+                contact: a.contact,
+                createdAt: a.createdAt
+            }))
         };
     });
 
@@ -80,6 +120,11 @@ export async function getAdminStats() {
 }
 
 export async function approveDoctor(doctorId: string) {
+    const session = await getServerSession(authOptions);
+    if (!isAdmin(session)) {
+        throw new Error("Unauthorized: Admin access required");
+    }
+
     const doctor = await prisma.doctor.update({
         where: { id: doctorId },
         data: { status: "Active" },
@@ -94,27 +139,23 @@ export async function approveDoctor(doctorId: string) {
     }
 
     revalidatePath("/admin");
+    revalidatePath("/search");
     return { success: true };
 }
 
 export async function terminateDoctor(doctorId: string) {
+    const session = await getServerSession(authOptions);
+    if (!isAdmin(session)) {
+        throw new Error("Unauthorized: Admin access required");
+    }
+
     try {
-        // 1. First, delete all appointments for this doctor
-        await prisma.appointment.deleteMany({
-            where: { doctorId }
-        });
-
-        // 2. Delete all reviews for this doctor
-        await prisma.review.deleteMany({
-            where: { doctorId }
-        });
-
-        // 3. Delete the doctor profile
-        await prisma.doctor.delete({
-            where: { id: doctorId }
-        });
+        await prisma.appointment.deleteMany({ where: { doctorId } });
+        await prisma.review.deleteMany({ where: { doctorId } });
+        await prisma.doctor.delete({ where: { id: doctorId } });
 
         revalidatePath("/admin");
+        revalidatePath("/search");
         return { success: true };
     } catch (error) {
         console.error("Error terminating doctor:", error);
@@ -133,19 +174,22 @@ export async function getAppointments(doctorId?: string) {
     });
 }
 
-
-
-export async function getDoctorById(id: string) {
-    return await prisma.doctor.findUnique({
-        where: { id },
-        include: {
-            appointments: {
-                take: 10,
-                orderBy: { createdAt: 'desc' }
+export const getDoctorById = unstable_cache(
+    async (id: string) => {
+        return await prisma.doctor.findUnique({
+            where: { id },
+            include: {
+                appointments: {
+                    take: 10,
+                    orderBy: { createdAt: 'desc' }
+                }
             }
-        }
-    });
-}
+        });
+    },
+    ["doctor-profile-cache"],
+    { revalidate: 300, tags: ["doctors"] }
+);
+
 
 
 
@@ -300,6 +344,22 @@ export async function respondToAppointment(appointmentId: string, action: 'confi
 export async function updateDoctorSettings(doctorId: string, data: any) {
     console.log("Updating doctor settings for:", doctorId, data);
     try {
+        const session = await getServerSession(authOptions);
+        if (!session || !session.user) {
+            throw new Error("Unauthorized");
+        }
+
+        const isUserAdmin = isAdmin(session);
+        if (!isUserAdmin) {
+            const doctor = await prisma.doctor.findUnique({
+                where: { id: doctorId },
+                select: { userId: true }
+            });
+            if (!doctor || doctor.userId !== (session.user as any).id) {
+                throw new Error("Unauthorized: You can only edit your own profile.");
+            }
+        }
+
         const fees = (data.fees !== undefined && data.fees !== null && data.fees !== "")
             ? parseInt(data.fees.toString().replace(/[^0-9]/g, ""), 10)
             : undefined;

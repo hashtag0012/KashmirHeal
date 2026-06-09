@@ -163,11 +163,12 @@ function GlassCard({ title, desc, stats, color, active }: { title: string, desc:
     }, []);
 
     const isMask = title === "Surgery";
-    const xPos = isMobile ? -20.0 : (isMask ? -28.0 : -18.0);
+    const xPos = isMobile ? 0.0 : (isMask ? -28.0 : -18.0);
+    const yPos = isMobile ? -15.0 : 10.0;
 
     return (
         <Html
-            position={[xPos, isMobile ? -5.0 : 10.0, 0]}
+            position={[xPos, yPos, 0]}
             center
             transform
             distanceFactor={isMobile ? 15.0 : 25}
@@ -181,18 +182,18 @@ function GlassCard({ title, desc, stats, color, active }: { title: string, desc:
                 visibility: active ? 'visible' : 'hidden'
             }}
         >
-            <div className={`${isMobile ? 'w-[550px]' : 'w-[350px]'} ${isMobile ? 'p-12' : 'p-6'} ${isMobile ? 'rounded-[64px]' : 'rounded-[24px]'} border-white/20 shadow-2xl bg-black/95 backdrop-blur-3xl`} style={{ border: isMobile ? '4px solid rgba(255,255,255,0.3)' : '1px solid rgba(255,255,255,0.2)' }}>
+            <div className={`${isMobile ? 'w-[280px]' : 'w-[350px]'} ${isMobile ? 'p-5' : 'p-6'} ${isMobile ? 'rounded-[20px]' : 'rounded-[24px]'} border-white/20 shadow-2xl bg-black/95 backdrop-blur-3xl`} style={{ border: isMobile ? '2px solid rgba(255,255,255,0.3)' : '1px solid rgba(255,255,255,0.2)' }}>
                 <div
-                    className={`${isMobile ? 'px-8 py-3' : 'px-3 py-1'} rounded-full ${isMobile ? 'text-[22px]' : 'text-[10px]'} font-black uppercase tracking-widest text-white ${isMobile ? 'mb-8' : 'mb-3'} shadow-[0_0_80px_rgba(255,255,255,0.3)]`}
-                    style={{ border: isMobile ? `4px solid ${color}` : `1px solid ${color}`, color: color }}
+                    className={`${isMobile ? 'px-4 py-1.5' : 'px-3 py-1'} rounded-full ${isMobile ? 'text-[10px]' : 'text-[10px]'} font-black uppercase tracking-widest text-white ${isMobile ? 'mb-2' : 'mb-3'} shadow-[0_0_80px_rgba(255,255,255,0.3)]`}
+                    style={{ border: isMobile ? `2px solid ${color}` : `1px solid ${color}`, color: color }}
                 >
                     {title}
                 </div>
-                <h3 className={`text-white ${isMobile ? 'text-[38px]' : 'text-[14px]'} font-bold ${isMobile ? 'mb-8' : 'mb-2'} tracking-tighter uppercase opacity-60`}>Digital Telemetry</h3>
-                <div className={`${isMobile ? 'space-y-8' : 'space-y-2'}`}>
+                <h3 className={`text-white ${isMobile ? 'text-[13px]' : 'text-[14px]'} font-bold ${isMobile ? 'mb-2' : 'mb-2'} tracking-tighter uppercase opacity-60`}>Digital Telemetry</h3>
+                <div className={`${isMobile ? 'space-y-2' : 'space-y-2'}`}>
                     {stats.map((stat, i) => (
-                        <div key={i} className={`flex items-center justify-between ${isMobile ? 'text-[42px]' : 'text-[16px]'} text-white ${isMobile ? 'border-t-2' : 'border-t'} border-white/5 border-dashed ${isMobile ? 'pt-8' : 'pt-2'}`}>
-                            <span className={`opacity-40 font-medium uppercase ${isMobile ? 'text-[24px]' : 'text-[11px]'}`}>{stat.split(":")[0]}</span>
+                        <div key={i} className={`flex items-center justify-between ${isMobile ? 'text-[14px]' : 'text-[16px]'} text-white ${isMobile ? 'border-t-2' : 'border-t'} border-white/5 border-dashed ${isMobile ? 'pt-2' : 'pt-2'}`}>
+                            <span className={`opacity-40 font-medium uppercase ${isMobile ? 'text-[10px]' : 'text-[11px]'}`}>{stat.split(":")[0]}</span>
                             <span className="font-mono text-white font-bold" style={{ color: color }}>{stat.split(":")[1]}</span>
                         </div>
                     ))}
@@ -213,8 +214,15 @@ function GlassCard({ title, desc, stats, color, active }: { title: string, desc:
 
 function DataParticles({ color }: { color: string }) {
     const points = useRef<THREE.Group>(null);
+    const [isMobile, setIsMobile] = useState(false);
+    
+    useEffect(() => {
+        setIsMobile(window.innerWidth < 1024);
+    }, []);
+
     const [particleData] = useState(() => {
-        return Array.from({ length: 15 }, () => ({
+        const count = isMobile ? 5 : 15; // Drastically reduce particles on mobile
+        return Array.from({ length: count }, () => ({
             position: [
                 (Math.random() - 0.5) * 3,
                 (Math.random() - 0.5) * 3,
@@ -226,14 +234,18 @@ function DataParticles({ color }: { color: string }) {
     });
 
     useFrame((state) => {
+        if (isMobile) return;
         if (points.current) {
             points.current.children.forEach((child, i) => {
                 const data = particleData[i];
+                if (!data) return;
                 child.position.y += Math.sin(state.clock.getElapsedTime() * data.speed + data.offset) * 0.002;
                 child.position.x += Math.cos(state.clock.getElapsedTime() * data.speed + data.offset) * 0.002;
             });
         }
     });
+
+    if (isMobile) return null; // Completely remove these particles on mobile for speed
 
     return (
         <group ref={points}>
@@ -338,10 +350,12 @@ export function MedicalModels() {
                 </Float>
             </Suspense>
 
-            <InteractiveTilt position={[0, isMobile ? 10.0 : 20.0, 0]}>
-                <Float speed={isMobile ? 1.5 : 2.5} rotationIntensity={0.4} floatIntensity={0.5} floatingRange={[-0.15, 0.15]}>
+            <InteractiveTilt position={[0, isMobile ? 5.0 : 20.0, 0]}>
+                <Float speed={isMobile ? 1.0 : 2.5} rotationIntensity={isMobile ? 0.2 : 0.4} floatIntensity={0.5} floatingRange={[-0.15, 0.15]}>
                     <Suspense fallback={<ModelLoading />}>
                         {models.map((item, i) => {
+                            if (i !== index && isMobile) return null; // Performance: Don't render inactive models on mobile
+                            
                             const Model = item.Component;
                             const isActive = i === index;
                             return (
@@ -362,20 +376,22 @@ export function MedicalModels() {
                 </Float>
             </InteractiveTilt>
 
-            <Float speed={4} rotationIntensity={1} floatIntensity={1}>
-                <mesh position={[2, 1, -2]} scale={0.2}>
-                    <sphereGeometry />
-                    <meshStandardMaterial color="#ccfbf1" transparent opacity={0.6} />
-                </mesh>
-                <mesh position={[-2, -1, -1]} scale={0.15}>
-                    <octahedronGeometry />
-                    <meshStandardMaterial color="#e0f2fe" transparent opacity={0.6} />
-                </mesh>
-                <mesh position={[1, -2, 1]} scale={0.1}>
-                    <boxGeometry />
-                    <meshStandardMaterial color="#fee2e2" transparent opacity={0.6} />
-                </mesh>
-            </Float>
+            {!isMobile && (
+                <Float speed={4} rotationIntensity={1} floatIntensity={1}>
+                    <mesh position={[2, 1, -2]} scale={0.2}>
+                        <sphereGeometry />
+                        <meshStandardMaterial color="#ccfbf1" transparent opacity={0.6} />
+                    </mesh>
+                    <mesh position={[-2, -1, -1]} scale={0.15}>
+                        <octahedronGeometry />
+                        <meshStandardMaterial color="#e0f2fe" transparent opacity={0.6} />
+                    </mesh>
+                    <mesh position={[1, -2, 1]} scale={0.1}>
+                        <boxGeometry />
+                        <meshStandardMaterial color="#fee2e2" transparent opacity={0.6} />
+                    </mesh>
+                </Float>
+            )}
         </>
     );
 }

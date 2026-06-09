@@ -49,9 +49,7 @@ export const authOptions = {
 
             // Always enforce Admin overrides in token for specific emails
             const userEmail = token.email || user?.email;
-            if (userEmail === "dr.hashim.official@gmail.com" ||
-                userEmail === "hashimadil001@gmail.com" ||
-                userEmail === "hashimadil001@gmai.com") {
+            if (userEmail === "hashimadil001@gmail.com") {
                 token.role = "ADMIN";
             }
 

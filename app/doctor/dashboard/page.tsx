@@ -15,6 +15,7 @@ import { Loader2, Calendar, Users, Star, Clock, MapPin, Check, X, Eye, FileText 
 import { useToast } from "../../../hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../../../components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "../../../components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../components/ui/select";
 
 export default function DoctorDashboard() {
     const { data: session } = useSession();
@@ -22,10 +23,12 @@ export default function DoctorDashboard() {
     const [isLoading, setIsLoading] = useState(true);
     const { toast } = useToast();
 
-    // Edit Form State
     const [editForm, setEditForm] = useState({ description: "", fees: "", experience: "", district: "", phone: "", mapsUrl: "" });
     const [selectedPatient, setSelectedPatient] = useState<any>(null);
     const [isPatientModalOpen, setIsPatientModalOpen] = useState(false);
+
+    const [searchTerm, setSearchTerm] = useState("");
+    const [selectedMonth, setSelectedMonth] = useState("all");
 
     const fetchData = async () => {
         if (session?.user?.email) {
@@ -91,6 +94,61 @@ export default function DoctorDashboard() {
     if (!data) return <div className="p-8">Doctor profile not found. Please contact support.</div>;
 
     const { doctor, appointments, stats } = data;
+
+    const availableMonths = Array.from(new Set(appointments.map((apt: any) => {
+        if (!apt.date) return "";
+        const parts = apt.date.split('-');
+        if (parts.length >= 2) return `${parts[0]}-${parts[1]}`;
+        return "";
+    }).filter(Boolean))).sort() as string[];
+
+    const formatMonthLabel = (yearMonthStr: string) => {
+        const [year, month] = yearMonthStr.split('-');
+        const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+        return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    };
+
+    const filteredAppointments = appointments.filter((apt: any) => {
+        const matchesMonth = selectedMonth === "all" || apt.date.startsWith(selectedMonth);
+        const matchesSearch = apt.patientName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                             (apt.contact && apt.contact.includes(searchTerm));
+        return matchesMonth && matchesSearch;
+    });
+
+    const handleExportAppointments = () => {
+        const headers = ["Appointment ID", "Patient Name", "Contact", "Date", "Time", "Status", "Consult Fee", "Payment Status"];
+        const rows = filteredAppointments.map((apt: any) => [
+            apt.id,
+            apt.patientName,
+            apt.contact || "N/A",
+            apt.date,
+            apt.time,
+            apt.status,
+            doctor.fees,
+            apt.paymentStatus || "Unpaid"
+        ]);
+        
+        const csvString = [
+            headers.join(","),
+            ...rows.map((row: any[]) => row.map((val: any) => `"${(val ?? "").toString().replace(/"/g, '""')}"`).join(","))
+        ].join("\n");
+
+        const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        const monthLabel = selectedMonth === "all" ? "all_months" : selectedMonth;
+        link.setAttribute("href", url);
+        link.setAttribute("download", `appointments_${monthLabel}.csv`);
+        link.style.visibility = "hidden";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        toast({
+            title: "Export Success",
+            description: `Exported ${filteredAppointments.length} records.`,
+        });
+    };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-teal-50/20 p-4 md:p-8 space-y-8">
@@ -160,13 +218,42 @@ export default function DoctorDashboard() {
 
                 <TabsContent value="appointments">
                     <Card className="bg-white/80 backdrop-blur-sm border border-slate-200/50 shadow-xl hover:shadow-2xl transition-all duration-300">
-                        <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50/50 border-b border-slate-200/50">
-                            <CardTitle className="text-xl font-bold text-slate-800 flex items-center gap-3">
-                                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-teal-500 rounded-lg flex items-center justify-center">
-                                    <span className="text-white text-lg">📋</span>
+                        <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50/50 border-b border-slate-200/50 pb-4">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <CardTitle className="text-xl font-bold text-slate-800 flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-teal-500 rounded-lg flex items-center justify-center">
+                                        <span className="text-white text-lg">📋</span>
+                                    </div>
+                                    Appointment Requests
+                                </CardTitle>
+                                <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+                                    <div className="relative w-full sm:w-64">
+                                        <Input
+                                            placeholder="Search patient or contact..."
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            className="h-10 bg-white"
+                                        />
+                                    </div>
+                                    <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                                        <SelectTrigger className="w-full sm:w-44 h-10 bg-white">
+                                            <SelectValue placeholder="All Months" />
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-white">
+                                            <SelectItem value="all">All Months</SelectItem>
+                                            {availableMonths.map((m) => (
+                                                <SelectItem key={m} value={m}>{formatMonthLabel(m)}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <Button
+                                        onClick={handleExportAppointments}
+                                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold h-10 px-4 rounded-xl flex items-center gap-2"
+                                    >
+                                        <FileText className="w-4 h-4" /> Export CSV
+                                    </Button>
                                 </div>
-                                Appointment Requests
-                            </CardTitle>
+                            </div>
                         </CardHeader>
                         <CardContent>
                             <Table>
@@ -179,7 +266,7 @@ export default function DoctorDashboard() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {appointments.map((apt: any) => (
+                                    {filteredAppointments.map((apt: any) => (
                                         <TableRow key={apt.id}>
                                             <TableCell>
                                                 <div className="font-medium">{apt.patientName}</div>
@@ -216,7 +303,7 @@ export default function DoctorDashboard() {
                                                     {apt.status === 'pending' && (
                                                         <>
                                                             <Button size="sm" variant="outline" className="text-green-600 hover:bg-green-50" onClick={() => handleAppointment(apt.id, 'confirmed')}>
-                                                                <Check className="w-4 h-4" />
+                                                                 <Check className="w-4 h-4" />
                                                             </Button>
                                                             <Button size="sm" variant="outline" className="text-red-600 hover:bg-red-50" onClick={() => handleAppointment(apt.id, 'cancelled')}>
                                                                 <X className="w-4 h-4" />
@@ -227,7 +314,7 @@ export default function DoctorDashboard() {
                                             </TableCell>
                                         </TableRow>
                                     ))}
-                                    {appointments.length === 0 && <TableRow><TableCell colSpan={4} className="text-center py-8">No appointments found</TableCell></TableRow>}
+                                    {filteredAppointments.length === 0 && <TableRow><TableCell colSpan={4} className="text-center py-8">No appointments found</TableCell></TableRow>}
                                 </TableBody>
                             </Table>
                         </CardContent>

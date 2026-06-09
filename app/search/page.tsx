@@ -8,6 +8,7 @@ import { MapPin, Search, SlidersHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { getDoctors } from "@/lib/actions";
+import { DISTRICTS, SPECIALIZATIONS } from "@/lib/mock-data";
 
 export default function SearchPage() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -18,6 +19,9 @@ export default function SearchPage() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [doctors, setDoctors] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+
+    const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
+    const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
 
     useEffect(() => {
         const fetchDoctors = async () => {
@@ -49,6 +53,15 @@ export default function SearchPage() {
         setSearchTerm("");
         setLocationTerm("");
     };
+
+    const locationSuggestions = DISTRICTS.filter(d =>
+        d.toLowerCase().includes(locationTerm.toLowerCase()) && locationTerm.trim() !== ""
+    );
+
+    const searchSuggestions = [
+        ...SPECIALIZATIONS.filter(s => s.toLowerCase().includes(searchTerm.toLowerCase())),
+        ...Array.from(new Set(doctors.map(d => d.name))).filter(name => name.toLowerCase().includes(searchTerm.toLowerCase()))
+    ].filter(Boolean).slice(0, 8);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-teal-50/20">
@@ -104,7 +117,7 @@ export default function SearchPage() {
                     transition={{ delay: 0.3 }}
                     className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl shadow-teal-900/10 border border-white/50 p-4 flex flex-col md:flex-row gap-3 max-w-6xl mx-auto mb-16"
                 >
-                    <div className="relative flex-[0.8]">
+                    <div className="relative flex-[0.8]" onFocus={() => setShowLocationSuggestions(true)} onBlur={() => setTimeout(() => setShowLocationSuggestions(false), 200)}>
                         <div className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 bg-gradient-to-br from-teal-500 to-blue-500 rounded-full flex items-center justify-center">
                             <MapPin className="w-3 h-3 text-white" />
                         </div>
@@ -114,9 +127,26 @@ export default function SearchPage() {
                             onChange={(e) => setLocationTerm(e.target.value)}
                             className="pl-12 h-16 border-none shadow-none focus-visible:ring-0 bg-transparent text-base font-semibold placeholder:text-slate-400"
                         />
+                        {showLocationSuggestions && locationSuggestions.length > 0 && (
+                            <div className="absolute top-[75px] left-0 right-0 bg-white border border-slate-200/80 rounded-2xl shadow-2xl z-50 max-h-60 overflow-y-auto p-2 space-y-1">
+                                {locationSuggestions.map((suggestion) => (
+                                    <button
+                                        key={suggestion}
+                                        type="button"
+                                        onClick={() => {
+                                            setLocationTerm(suggestion);
+                                            setShowLocationSuggestions(false);
+                                        }}
+                                        className="w-full text-left px-4 py-2.5 text-sm font-semibold rounded-xl text-slate-700 hover:bg-teal-50 hover:text-teal-600 transition-all flex items-center gap-2 cursor-pointer"
+                                    >
+                                        📍 {suggestion}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
                     <div className="w-[1px] bg-gradient-to-b from-slate-200 to-transparent hidden md:block" />
-                    <div className="relative flex-[1.5]">
+                    <div className="relative flex-[1.5]" onFocus={() => setShowSearchSuggestions(true)} onBlur={() => setTimeout(() => setShowSearchSuggestions(false), 200)}>
                         <div className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 bg-gradient-to-br from-teal-500 to-blue-500 rounded-full flex items-center justify-center">
                             <Search className="w-3 h-3 text-white" />
                         </div>
@@ -126,6 +156,31 @@ export default function SearchPage() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="pl-12 h-16 border-none shadow-none focus-visible:ring-0 bg-transparent text-base font-semibold placeholder:text-slate-400"
                         />
+                        {showSearchSuggestions && searchTerm.trim() !== "" && searchSuggestions.length > 0 && (
+                            <div className="absolute top-[75px] left-0 right-0 bg-white border border-slate-200/80 rounded-2xl shadow-2xl z-50 max-h-60 overflow-y-auto p-2 space-y-1">
+                                {searchSuggestions.map((suggestion) => {
+                                    const isSpecialty = SPECIALIZATIONS.includes(suggestion);
+                                    return (
+                                        <button
+                                            key={suggestion}
+                                            type="button"
+                                            onClick={() => {
+                                                setSearchTerm(suggestion);
+                                                setShowSearchSuggestions(false);
+                                            }}
+                                            className="w-full text-left px-4 py-2.5 text-sm font-semibold rounded-xl text-slate-700 hover:bg-teal-50 hover:text-teal-600 transition-all flex items-center justify-between cursor-pointer"
+                                        >
+                                            <span className="flex items-center gap-2">
+                                                {isSpecialty ? "🔬" : "👨‍⚕️"} {suggestion}
+                                            </span>
+                                            <span className="text-[10px] uppercase font-bold text-slate-400">
+                                                {isSpecialty ? "Specialty" : "Doctor"}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
                     <Button className="h-16 px-10 rounded-2xl bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-700 hover:to-blue-700 text-white font-bold shadow-xl shadow-teal-600/20 transition-all duration-300 hover:scale-105">
                         <Search className="w-5 h-5 mr-2" /> Search Now

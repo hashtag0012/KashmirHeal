@@ -10,7 +10,10 @@ import { Badge } from "@/components/ui/badge";
 import { Search, Loader2, Trash2, ExternalLink, FileText, CheckCircle2, Pencil, MapPin, Phone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import Image from "next/image";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ExportButton } from "@/components/ui/ExportButton";
 
 type DoctorStat = {
     id: string;
@@ -35,6 +38,7 @@ export default function AdminDashboard() {
     const [isLoading, setIsLoading] = useState(true);
     const [editingDoctor, setEditingDoctor] = useState<DoctorStat | null>(null);
     const [editForm, setEditForm] = useState({ phone: "", district: "", mapsUrl: "" });
+    const [selectedMonth, setSelectedMonth] = useState("all");
     const { toast } = useToast();
 
     const fetchStats = async () => {
@@ -87,17 +91,85 @@ export default function AdminDashboard() {
 
     if (isLoading) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin" /></div>;
 
-    const filteredDoctors = stats?.doctorStats.filter((doc: DoctorStat) =>
+    // Extract unique months from all appointments in the system
+    const allAppointments = stats ? stats.doctorStats.flatMap((doc: any) => doc.appointments || []) : [];
+    
+    const availableMonths = Array.from(new Set(allAppointments.map((apt: any) => {
+        if (!apt.date) return "";
+        const parts = apt.date.split('-');
+        if (parts.length >= 2) return `${parts[0]}-${parts[1]}`;
+        return "";
+    }).filter(Boolean))).sort() as string[];
+
+    const formatMonthLabel = (yearMonthStr: string) => {
+        const [year, month] = yearMonthStr.split('-');
+        const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+        return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    };
+
+    // Dynamic stats computation
+    let displayRevenue = stats?.totalRevenue || 0;
+    let displayCommission = stats?.totalCommission || 0;
+    let displayAppointments = stats?.totalAppointments || 0;
+    
+    if (stats && selectedMonth !== "all") {
+        displayRevenue = 0;
+        displayCommission = 0;
+        displayAppointments = 0;
+        stats.doctorStats.forEach((doc: any) => {
+            const monthlyPaid = (doc.appointments || []).filter((a: any) => a.paymentStatus === "Paid" && a.date.startsWith(selectedMonth));
+            const monthlyTotal = (doc.appointments || []).filter((a: any) => a.date.startsWith(selectedMonth));
+            displayRevenue += monthlyPaid.reduce((sum: number, a: any) => sum + a.amount, 0);
+            displayCommission += monthlyPaid.reduce((sum: number, a: any) => sum + a.commission, 0);
+            displayAppointments += monthlyTotal.length;
+        });
+    }
+
+    // Dynamic doctor stats table data
+    const computedDoctorStats = stats ? stats.doctorStats.map((doc: any) => {
+        if (selectedMonth === "all") {
+            return doc;
+        }
+        const monthlyPaid = (doc.appointments || []).filter((a: any) => a.paymentStatus === "Paid" && a.date.startsWith(selectedMonth));
+        const monthlyUnpaid = (doc.appointments || []).filter((a: any) => a.paymentStatus === "Unpaid" && a.date.startsWith(selectedMonth));
+        const totalRevenue = monthlyPaid.reduce((sum: number, a: any) => sum + a.amount, 0);
+        const commission = monthlyPaid.reduce((sum: number, a: any) => sum + a.commission, 0);
+        
+        return {
+            ...doc,
+            paidAppts: monthlyPaid.length,
+            unpaidAppts: monthlyUnpaid.length,
+            totalRevenue,
+            commission
+        };
+    }) : [];
+
+    const filteredDoctors = computedDoctorStats.filter((doc: any) =>
         doc.name.toLowerCase().includes(search.toLowerCase()) ||
         doc.licenseNumber?.toLowerCase().includes(search.toLowerCase())
     );
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-teal-50/20 p-8 space-y-8">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                     <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 via-blue-800 to-teal-600 bg-clip-text text-transparent">Admin Dashboard</h1>
                     <p className="text-slate-600 mt-2">Overview of platform performance and doctor management</p>
+                </div>
+                
+                <div className="flex items-center gap-3 bg-white/80 backdrop-blur-sm p-4 rounded-2xl shadow-xl border border-slate-200/50">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Report Month:</span>
+                    <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                        <SelectTrigger className="w-44 h-10 bg-white">
+                            <SelectValue placeholder="All Months" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white">
+                            <SelectItem value="all">All Months</SelectItem>
+                            {availableMonths.map((m) => (
+                                <SelectItem key={m} value={m}>{formatMonthLabel(m)}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 </div>
             </div>
 
@@ -108,18 +180,18 @@ export default function AdminDashboard() {
                         <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
                             <span className="text-white text-sm font-bold">₹</span>
                         </div>
-                        Total Revenue
+                        Revenue
                     </CardTitle></CardHeader>
-                    <CardContent><div className="text-3xl font-bold text-emerald-900">₹{stats?.totalRevenue.toLocaleString()}</div></CardContent>
+                    <CardContent><div className="text-3xl font-bold text-emerald-900">₹{displayRevenue.toLocaleString()}</div></CardContent>
                 </Card>
                 <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-200/50 hover:shadow-xl hover:shadow-blue-200/30 transition-all duration-300">
                     <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold text-blue-800 flex items-center gap-2">
                         <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
                             <span className="text-white text-sm font-bold">%</span>
                         </div>
-                        Total Commissions (10%)
+                        Commissions (10%)
                     </CardTitle></CardHeader>
-                    <CardContent><div className="text-3xl font-bold text-blue-900">₹{stats?.totalCommission.toLocaleString()}</div></CardContent>
+                    <CardContent><div className="text-3xl font-bold text-blue-900">₹{displayCommission.toLocaleString()}</div></CardContent>
                 </Card>
                 <Card className="bg-gradient-to-br from-purple-50 to-purple-100/50 border-purple-200/50 hover:shadow-xl hover:shadow-purple-200/30 transition-all duration-300">
                     <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold text-purple-800 flex items-center gap-2">
@@ -135,30 +207,122 @@ export default function AdminDashboard() {
                         <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center">
                             <span className="text-white text-sm font-bold">📅</span>
                         </div>
-                        Total Appointments
+                        Appointments
                     </CardTitle></CardHeader>
-                    <CardContent><div className="text-3xl font-bold text-amber-900">{stats?.totalAppointments}</div></CardContent>
+                    <CardContent><div className="text-3xl font-bold text-amber-900">{displayAppointments}</div></CardContent>
                 </Card>
             </div>
 
             {/* Doctor Management */}
             <Card className="bg-white/80 backdrop-blur-sm border border-slate-200/50 shadow-xl hover:shadow-2xl transition-all duration-300">
-                <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50/50 border-b border-slate-200/50">
-                    <div className="flex items-center justify-between">
+                <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50/50 border-b border-slate-200/50 pb-4">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                         <CardTitle className="text-xl font-bold text-slate-800 flex items-center gap-3">
                             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-teal-500 rounded-lg flex items-center justify-center">
                                 <span className="text-white text-lg">👨‍⚕️</span>
                             </div>
                             Doctor Management
                         </CardTitle>
-                        <div className="relative w-80">
-                            <Search className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
-                            <Input
-                                placeholder="Search by name or license..."
-                                className="pl-10 h-12 bg-white/80 border-slate-200/50 rounded-xl focus:border-blue-400 focus:ring-2 focus:ring-blue-200/50"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                            />
+                        
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                            <div className="relative w-full sm:w-64">
+                                <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                                <Input
+                                    placeholder="Search by name or license..."
+                                    className="pl-9 h-9 bg-white"
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                />
+                            </div>
+                            <ExportButton
+                              filename={
+                                selectedMonth === "all"
+                                  ? "doctors_report_all_months"
+                                  : `doctors_report_${selectedMonth}`
+                              }
+                              generateCsv={() => {
+                                const headers = [
+                                  "Doctor ID",
+                                  "Name",
+                                  "Specialization",
+                                  "District",
+                                  "Status",
+                                  "Fees (₹)",
+                                  "Phone",
+                                  "License Number",
+                                  "Paid Appointments",
+                                  "Unpaid Appointments",
+                                  "Total Revenue (₹)",
+                                  "Commission (₹)",
+                                ];
+                                const rows = computedDoctorStats.map((doc: any) => [
+                                  doc.id,
+                                  doc.name,
+                                  doc.specialization,
+                                  doc.district || "N/A",
+                                  doc.status,
+                                  doc.fees,
+                                  doc.phone || "N/A",
+                                  doc.licenseNumber || "N/A",
+                                  doc.paidAppts,
+                                  doc.unpaidAppts,
+                                  doc.totalRevenue,
+                                  doc.commission,
+                                ]);
+                                return { headers, rows };
+                              }}
+                            >
+                              Export Doctors
+                            </ExportButton>
+                            <ExportButton
+                              filename={
+                                selectedMonth === "all"
+                                  ? "appointments_report_all_months"
+                                  : `appointments_report_${selectedMonth}`
+                              }
+                              generateCsv={() => {
+                                const headers = [
+                                  "Appointment ID",
+                                  "Patient Name",
+                                  "Patient ID",
+                                  "Contact",
+                                  "Date",
+                                  "Time",
+                                  "Status",
+                                  "Payment Status",
+                                  "Amount (₹)",
+                                  "Commission (₹)",
+                                  "Doctor Name",
+                                  "Doctor ID",
+                                ];
+                                const rows: (string | number)[][] = [];
+                                for (const doc of computedDoctorStats) {
+                                  const filteredApts =
+                                    selectedMonth === "all"
+                                      ? doc.appointments
+                                      : doc.appointments.filter((a: any) => a.date.startsWith(selectedMonth));
+                                  for (const apt of filteredApts) {
+                                    rows.push([
+                                      apt.id,
+                                      apt.patientName,
+                                      apt.patientId,
+                                      apt.contact || "N/A",
+                                      apt.date,
+                                      apt.time,
+                                      apt.status,
+                                      apt.paymentStatus || "Unpaid",
+                                      apt.amount,
+                                      apt.commission,
+                                      doc.name,
+                                      doc.id,
+                                    ]);
+                                  }
+                                }
+                                return { headers, rows };
+                              }}
+                            >
+                              Export Appointments
+                            </ExportButton>                      
                         </div>
                     </div>
                 </CardHeader>
@@ -309,9 +473,11 @@ export default function AdminDashboard() {
                                         editingDoctor.verificationUrl.toLowerCase().endsWith('.jpeg') ||
                                         editingDoctor.verificationUrl.toLowerCase().endsWith('.png')) && (
                                             <div className="mt-2 rounded-md overflow-hidden border bg-white aspect-video relative">
-                                                <img
+                                                <Image
                                                     src={editingDoctor.verificationUrl}
                                                     alt="Verification Document"
+                                                    width={400}
+                                                    height={300}
                                                     className="w-full h-full object-contain"
                                                 />
                                             </div>

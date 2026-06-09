@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, Stethoscope, Upload, Check, Loader2, ArrowRight, ShieldCheck, Phone, MapPin, Award, IndianRupee, FileText } from "lucide-react";
+import { User, Stethoscope, Upload, Check, Loader2, ArrowRight, ShieldCheck, Phone, MapPin, Award, IndianRupee, FileText, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,7 +42,8 @@ function OnboardingContent() {
     const [fees, setFees] = useState("500");
     const [experience, setExperience] = useState("");
     const [description, setDescription] = useState("");
-    const [file, setFile] = useState<File | null>(null);
+    const [profilePic, setProfilePic] = useState<File | null>(null);
+    // added profile picture state for doctors
 
     // Pre-fill existing data
     useEffect(() => {
@@ -56,6 +57,59 @@ function OnboardingContent() {
         setStep(2);
     };
 
+    const handleProfilePicChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const selectedFile = e.target.files?.[0];
+        if (!selectedFile) return;
+        const MAX_SIZE = 10 * 1024 * 1024;
+        if (selectedFile.size > MAX_SIZE) {
+            toast({
+                title: "File too large",
+                description: "Profile picture exceeds 10MB limit.",
+                variant: "destructive"
+            });
+            return;
+        }
+        const allowed = ["jpg", "jpeg", "png"];
+        const ext = selectedFile.name.split('.').pop()?.toLowerCase();
+        if (!ext || !allowed.includes(ext)) {
+            toast({
+                title: "Invalid file type",
+                description: "Only JPG, JPEG, PNG allowed for profile picture.",
+                variant: "destructive"
+            });
+            return;
+        }
+        setProfilePic(selectedFile);
+    };
+        const selectedFile = e.target.files?.[0];
+        if (!selectedFile) return;
+
+        // 10MB limit
+        const MAX_SIZE = 10 * 1024 * 1024;
+        if (selectedFile.size > MAX_SIZE) {
+            toast({
+                title: "File too large",
+                description: "The selected file exceeds the 10MB size limit.",
+                variant: "destructive"
+            });
+            return;
+        }
+
+        const allowedExtensions = ["pdf", "jpg", "jpeg", "png"];
+        const parts = selectedFile.name.split('.');
+        const ext = parts.length > 1 ? parts.pop()?.toLowerCase() : "";
+        if (!ext || !allowedExtensions.includes(ext)) {
+            toast({
+                title: "Invalid file type",
+                description: "Only PDF, JPG, JPEG, and PNG files are allowed.",
+                variant: "destructive"
+            });
+            return;
+        }
+
+        setFile(selectedFile);
+    };
+
     const handleSubmit = async () => {
         setIsLoading(true);
         try {
@@ -63,10 +117,12 @@ function OnboardingContent() {
             if (role === "DOCTOR") {
                 if (!license || !specialization || !district || !experience) throw new Error("Please fill all doctor details");
                 if (!file) throw new Error("Verification document is required");
+                if (!profilePic) throw new Error("Doctor profile picture is required");
             }
 
-            // Real File Upload
+            // Real File Uploads
             let verificationUrl = null;
+            let profilePicUrl = null;
             if (role === "DOCTOR" && file) {
                 const formData = new FormData();
                 formData.append("file", file);
@@ -77,6 +133,17 @@ function OnboardingContent() {
                 if (!uploadRes.ok) throw new Error("File upload failed");
                 const uploadData = await uploadRes.json();
                 verificationUrl = uploadData.url;
+            }
+            if (role === "DOCTOR" && profilePic) {
+                const picForm = new FormData();
+                picForm.append("file", profilePic);
+                const picRes = await fetch("/api/upload", {
+                    method: "POST",
+                    body: picForm
+                });
+                if (!picRes.ok) throw new Error("Profile picture upload failed");
+                const picData = await picRes.json();
+                profilePicUrl = picData.url;
             }
 
             const res = await fetch("/api/onboarding", {
@@ -91,7 +158,8 @@ function OnboardingContent() {
                     fees: parseFloat(fees),
                     experience,
                     description,
-                    verificationUrl
+                    verificationUrl,
+                    imageUrl: profilePicUrl
                 }),
             });
 
@@ -100,7 +168,7 @@ function OnboardingContent() {
             await update({
                 isOnboarded: true,
                 phone: phone,
-                role: role === "DOCTOR" ? "PATIENT" : "PATIENT"
+                role: role === "DOCTOR" ? "DOCTOR" : "PATIENT"
             });
 
             // Transition to Success Step
@@ -274,21 +342,62 @@ function OnboardingContent() {
                                             />
                                         </div>
 
-                                        <div className="p-8 border-2 border-dashed border-slate-200 rounded-3xl bg-white space-y-4 text-center group cursor-pointer hover:bg-slate-50 hover:border-blue-400 transition-all" onClick={() => document.getElementById('doc-upload')?.click()}>
-                                            <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-2 text-blue-600 group-hover:scale-110 transition-transform">
-                                                <Upload className="w-8 h-8" />
-                                            </div>
-                                            <div>
-                                                <div className="text-slate-900 font-bold text-lg">{file ? file.name : "Upload Verification Document"}</div>
-                                                <div className="text-sm text-slate-500">Medical Council Registration or ID Card (JPEG/PNG/PDF)</div>
-                                            </div>
-                                            <Input
+                                        {/* Profile picture input (mandatory for doctors) */}
+                                        <div className="space-y-2">
+                                            <Label htmlFor="profile-pic">Profile Picture</Label>
+                                            <input
+                                                id="profile-pic"
                                                 type="file"
-                                                className="hidden"
-                                                id="doc-upload"
-                                                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                                                accept="image/*"
+                                                onChange={handleProfilePicChange}
+                                                className="border rounded p-1 w-full"
                                             />
                                         </div>
+
+                                        {/* Verification Document */}
+                                        {file ? (
+                                            <div className="p-8 border-2 border-dashed border-teal-500 rounded-3xl bg-teal-50/50 space-y-4 text-center relative">
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setFile(null);
+                                                        const input = document.getElementById('doc-upload') as HTMLInputElement;
+                                                        if (input) input.value = '';
+                                                    }}
+                                                    className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-200 text-slate-500 hover:text-slate-700 transition-colors"
+                                                >
+                                                    <X className="w-5 h-5" />
+                                                </button>
+                                                <div className="w-16 h-16 bg-teal-100 rounded-2xl flex items-center justify-center mx-auto mb-2 text-teal-600">
+                                                    <FileText className="w-8 h-8" />
+                                                </div>
+                                                <div>
+                                                    <div className="text-slate-900 font-bold text-lg break-all">{file.name}</div>
+                                                    <div className="text-sm text-slate-500 font-medium">
+                                                        {(file.size / (1024 * 1024)).toFixed(2)} MB
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="p-8 border-2 border-dashed border-slate-200 rounded-3xl bg-white space-y-4 text-center group cursor-pointer hover:bg-slate-50 hover:border-blue-400 transition-all" onClick={() => document.getElementById('doc-upload')?.click()}>
+                                                <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-2 text-blue-600 group-hover:scale-110 transition-transform">
+                                                    <Upload className="w-8 h-8" />
+                                                </div>
+                                                <div>
+                                                    <div className="text-slate-900 font-bold text-lg">Upload Verification Document</div>
+                                                    <div className="text-sm text-slate-500">Medical Council Registration or ID Card (JPEG/PNG/PDF)</div>
+                                                    <div className="text-xs text-slate-400 mt-2 font-semibold">Max file size: 10MB</div>
+                                                </div>
+                                            </div>
+                                        )}
+                                        <Input
+                                            type="file"
+                                            className="hidden"
+                                            id="doc-upload"
+                                            accept=".pdf,.jpg,.jpeg,.png"
+                                            onChange={handleFileChange}
+                                        />
                                     </motion.div>
                                 )}
 
