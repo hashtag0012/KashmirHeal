@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -133,11 +134,7 @@ export default function DoctorProfile() {
             {/* Premium Hero Header */}
             <div className="relative h-[50vh] min-h-[400px] w-full overflow-hidden">
                 <div className="absolute inset-0">
-                    <img
-                        src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?q=80&w=2936&auto=format&fit=crop"
-                        alt="Medical Office"
-                        className="w-full h-full object-cover"
-                    />
+                    <Image src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?q=80&w=2936&auto=format&fit=crop" alt="Medical Office" className="w-full h-full object-cover" fill />
                     <div className="absolute inset-0 bg-gradient-to-t from-zinc-50 dark:from-black via-black/40 to-transparent" />
                 </div>
 
@@ -149,7 +146,7 @@ export default function DoctorProfile() {
                     >
                         <div className="relative">
                             <div className="w-40 h-40 rounded-3xl overflow-hidden border-4 border-white dark:border-zinc-800 shadow-2xl">
-                                <img src={doctor.image} alt={doctor.name} className="w-full h-full object-cover" />
+                                <Image src={doctor.image} alt={doctor.name} className="w-full h-full object-cover" fill />
                             </div>
                             <div className="absolute -bottom-3 -right-3 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full border-4 border-white dark:border-black flex items-center gap-1">
                                 <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
@@ -276,11 +273,7 @@ export default function DoctorProfile() {
                                     <div className="w-full md:w-72 lg:w-80 h-72 md:h-80 relative group">
                                         <div className="absolute inset-0 bg-gradient-to-tr from-primary to-blue-600 rounded-[40px] rotate-6 group-hover:rotate-0 transition-transform duration-500" />
                                         <div className="absolute inset-0 bg-zinc-100 dark:bg-zinc-800 rounded-[40px] border-4 border-white dark:border-zinc-700 overflow-hidden shadow-2xl">
-                                            <img
-                                                src="/images/map-viz.jpg"
-                                                className="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-700"
-                                                alt="Map Visualization"
-                                            />
+                                            <Image src="/images/map-viz.jpg" alt="Map Visualization" className="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-700" fill />
                                             <div className="absolute inset-0 bg-primary/20 backdrop-blur-[2px]" />
                                             <div className="absolute inset-0 flex items-center justify-center">
                                                 <div className="w-20 h-20 rounded-full bg-white dark:bg-zinc-900 shadow-2xl flex items-center justify-center">

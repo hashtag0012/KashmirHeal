@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 
 import { motion } from "framer-motion";
 import { Play, ArrowRight } from "lucide-react";
@@ -65,10 +66,11 @@ export function ExperienceSection() {
                         >
                             {/* Placeholder for Video/High-Quality Image */}
                             <div className="relative aspect-[4/3] group cursor-pointer bg-slate-200">
-                                <img
+                                <Image
                                     src="https://images.unsplash.com/photo-1638202993928-7267aad84c31?q=80&w=2787&auto=format&fit=crop"
                                     alt="Doctor Patient Interaction"
                                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                    fill
                                 />
                                 <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                                     <div className="w-24 h-24 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center group-hover:scale-110 transition-transform border border-white/50">
