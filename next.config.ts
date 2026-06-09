@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 /** @type {NextConfig} */
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
+
   compress: true,
   images: {
     domains: [],
