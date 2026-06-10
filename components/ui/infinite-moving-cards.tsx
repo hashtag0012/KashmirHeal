@@ -26,13 +26,37 @@ export const InfiniteMovingCards = ({
     const containerRef = React.useRef<HTMLDivElement>(null);
     const scrollerRef = React.useRef<HTMLUListElement>(null);
 
-    useEffect(() => {
-        addAnimation();
-    }, []);
-
     const [start, setStart] = useState(false);
 
-    function addAnimation() {
+    const getDirection = React.useCallback(() => {
+        if (containerRef.current) {
+            if (direction === "left") {
+                containerRef.current.style.setProperty(
+                    "--animation-direction",
+                    "forwards"
+                );
+            } else {
+                containerRef.current.style.setProperty(
+                    "--animation-direction",
+                    "reverse"
+                );
+            }
+        }
+    }, [direction]);
+
+    const getSpeed = React.useCallback(() => {
+        if (containerRef.current) {
+            if (speed === "fast") {
+                containerRef.current.style.setProperty("--animation-duration", "20s");
+            } else if (speed === "normal") {
+                containerRef.current.style.setProperty("--animation-duration", "40s");
+            } else {
+                containerRef.current.style.setProperty("--animation-duration", "80s");
+            }
+        }
+    }, [speed]);
+
+    const addAnimation = React.useCallback(() => {
         if (containerRef.current && scrollerRef.current) {
             const scrollerContent = Array.from(scrollerRef.current.children);
 
@@ -47,35 +71,11 @@ export const InfiniteMovingCards = ({
             getSpeed();
             setStart(true);
         }
-    }
+    }, [getDirection, getSpeed]);
 
-    const getDirection = () => {
-        if (containerRef.current) {
-            if (direction === "left") {
-                containerRef.current.style.setProperty(
-                    "--animation-direction",
-                    "forwards"
-                );
-            } else {
-                containerRef.current.style.setProperty(
-                    "--animation-direction",
-                    "reverse"
-                );
-            }
-        }
-    };
-
-    const getSpeed = () => {
-        if (containerRef.current) {
-            if (speed === "fast") {
-                containerRef.current.style.setProperty("--animation-duration", "20s");
-            } else if (speed === "normal") {
-                containerRef.current.style.setProperty("--animation-duration", "40s");
-            } else {
-                containerRef.current.style.setProperty("--animation-duration", "80s");
-            }
-        }
-    };
+    useEffect(() => {
+        addAnimation();
+    }, [addAnimation]);
 
     return (
         <div
@@ -114,7 +114,7 @@ export const InfiniteMovingCards = ({
                                 )}
                             </div>
                             <span className="relative z-20 text-[15px] md:text-lg leading-[1.6] text-slate-700 font-medium font-serif italic block mb-8">
-                                "{item.quote}"
+                                &ldquo;{item.quote}&rdquo;
                             </span>
                             <div className="relative z-20 flex flex-row items-center gap-4 pt-6 border-t border-slate-100">
                                 <div className="relative">

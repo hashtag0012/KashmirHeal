@@ -11,8 +11,9 @@ import { Search, MapPin, ArrowRight, ShieldCheck, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { StatsTicker } from "./StatsTicker";
+import Image from "next/image";
 import dynamic from "next/dynamic";
-const MedicalModels = dynamic(() => import("./MedicalModels"), { ssr: false, loading: () => <></> });
+const MedicalModels = dynamic(() => import("./MedicalModels").then(mod => ({ default: mod.MedicalModels })), { ssr: false, loading: () => <></> }) as any;
 
 function ParticleField(props: any) {
   const ref = useRef<any>(null);

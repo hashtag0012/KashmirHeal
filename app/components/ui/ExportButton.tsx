@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "./button";
 import { Loader2, FileText } from "lucide-react";
-import { useToast } from "../../hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 /**
  * ExportButton – generic component to export an array of objects as an Excel file.

@@ -39,10 +39,11 @@ function OnboardingContent() {
     const [specialization, setSpecialization] = useState("");
     const [district, setDistrict] = useState("");
     const [license, setLicense] = useState("");
+    const [file, setFile] = useState<File | null>(null);
+    const [profilePic, setProfilePic] = useState<File | null>(null);
     const [fees, setFees] = useState("500");
     const [experience, setExperience] = useState("");
     const [description, setDescription] = useState("");
-    const [profilePic, setProfilePic] = useState<File | null>(null);
     // added profile picture state for doctors
 
     // Pre-fill existing data
@@ -81,6 +82,8 @@ function OnboardingContent() {
         }
         setProfilePic(selectedFile);
     };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFile = e.target.files?.[0];
         if (!selectedFile) return;
 
